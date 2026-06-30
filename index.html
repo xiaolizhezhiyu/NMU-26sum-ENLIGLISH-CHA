@@ -1,0 +1,561 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>过单词 · 期末冲刺</title>
+<style>
+  :root{
+    --ink:#14110f; --paper:#f3ede1; --card:#fbf8f1; --line:#e3d9c6;
+    --accent:#c4502d;          /* 朱砂 */
+    --accent-2:#2f6f5e;        /* 对的颜色 */
+    --gold:#b8893a;
+    --muted:#8a7e6c;
+    --shadow:0 1px 0 #fff inset, 0 18px 40px -24px rgba(40,30,15,.4);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(120% 80% at 50% -10%, #f7f1e6 0%, var(--paper) 55%, #ece2cf 100%);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    display:flex;flex-direction:column;min-height:100%;
+    overscroll-behavior:none;
+  }
+  /* 顶栏 */
+  header{
+    padding:14px 18px 10px; display:flex;align-items:center;gap:12px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{font-weight:800;letter-spacing:.5px;font-size:18px;display:flex;align-items:baseline;gap:8px}
+  .brand .zh{font-size:20px}
+  .brand .en{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+  .seal{
+    margin-left:auto;width:34px;height:34px;border-radius:7px;
+    border:1.5px solid var(--accent);color:var(--accent);
+    display:grid;place-items:center;font-weight:800;font-size:15px;
+    transform:rotate(-4deg);font-family:"Songti SC","SimSun",serif;
+  }
+  /* 选库 */
+  .decks{display:flex;gap:8px;padding:12px 14px 0;flex-wrap:wrap}
+  .deck{
+    flex:1 1 0;min-width:96px;cursor:pointer;text-align:left;
+    background:var(--card);border:1px solid var(--line);border-radius:13px;
+    padding:11px 13px;box-shadow:var(--shadow);transition:.16s;
+    display:flex;flex-direction:column;gap:3px;
+  }
+  .deck:active{transform:scale(.98)}
+  .deck.on{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent),var(--shadow)}
+  .deck .t{font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px}
+  .deck .n{font-size:12px;color:var(--muted)}
+  .deck.wrong .t{color:var(--accent)}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  /* 进度 */
+  .meta{display:flex;align-items:center;gap:10px;padding:12px 16px 4px;font-size:12px;color:var(--muted)}
+  .bar{flex:1;height:6px;border-radius:99px;background:#e6dcc8;overflow:hidden}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--accent));transition:width .3s}
+  .tag{padding:2px 8px;border-radius:99px;background:#efe6d3;color:var(--muted);font-weight:600}
+  /* 卡片区 */
+  main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:6px 16px 16px;gap:14px;min-height:0}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:20px;
+    box-shadow:var(--shadow);padding:26px 22px 22px;position:relative;
+  }
+  .card::before{
+    content:"";position:absolute;inset:6px;border-radius:15px;
+    border:1px solid #efe7d6;pointer-events:none;
+  }
+  .pos-line{display:flex;align-items:center;gap:9px;margin-bottom:6px;flex-wrap:wrap}
+  .word{font-size:34px;font-weight:800;line-height:1.18;letter-spacing:.2px;word-break:break-word}
+  .ipa{color:var(--muted);font-size:15px;font-style:italic}
+  .pos{font-size:12px;color:var(--accent-2);font-weight:700;border:1px solid #cfe0d8;background:#eaf2ee;border-radius:6px;padding:1px 7px}
+  .hint{margin-top:6px;color:var(--muted);font-size:12px}
+  /* 选项 */
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{
+    text-align:left;cursor:pointer;border:1px solid var(--line);background:var(--card);
+    border-radius:14px;padding:14px 15px;font-size:16px;color:var(--ink);
+    box-shadow:var(--shadow);transition:.13s;display:flex;align-items:center;gap:11px;
+  }
+  .opt:active{transform:scale(.99)}
+  .opt .k{width:22px;height:22px;flex:none;border-radius:6px;border:1px solid var(--line);
+    display:grid;place-items:center;font-size:12px;color:var(--muted);font-weight:700}
+  .opt.right{border-color:var(--accent-2);background:#e9f3ee;color:#1f4d40}
+  .opt.right .k{border-color:var(--accent-2);background:var(--accent-2);color:#fff}
+  .opt.wrong{border-color:var(--accent);background:#fbeae5;color:#8c3017}
+  .opt.wrong .k{border-color:var(--accent);background:var(--accent);color:#fff}
+  .opt[disabled]{cursor:default}
+  /* 底部操作 */
+  .foot{display:flex;align-items:center;gap:10px;padding:8px 16px 18px}
+  .btn{
+    border:1px solid var(--line);background:var(--card);border-radius:12px;
+    padding:11px 14px;font-size:14px;font-weight:700;cursor:pointer;color:var(--ink);
+    box-shadow:var(--shadow);
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.primary{background:var(--ink);color:#f6efe1;border-color:var(--ink);margin-left:auto}
+  .btn.ghost{color:var(--muted)}
+  .stat{font-size:12px;color:var(--muted)}
+  .stat b{color:var(--accent)}
+  /* 空/完成态 */
+  .done{text-align:center;padding:34px 18px}
+  .done .big{font-size:22px;font-weight:800;margin-bottom:8px}
+  .done .sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+  .toast{
+    position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#f6efe1;padding:9px 16px;border-radius:999px;font-size:13px;
+    opacity:0;pointer-events:none;transition:.25s;z-index:9;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (min-width:560px){
+    body{max-width:480px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header>
+  <div class="brand"><span class="zh">过单词</span><span class="en">Vocab Drill</span></div>
+  <div class="seal">勤</div>
+</header>
+
+<div class="decks" id="decks"></div>
+
+<div class="meta">
+  <span class="tag" id="deckName">课内</span>
+  <div class="bar"><i id="barFill"></i></div>
+  <span id="counter">0 / 0</span>
+</div>
+
+<main id="main"></main>
+
+<div class="foot">
+  <span class="stat" id="scoreStat"></span>
+  <button class="btn ghost" id="restartBtn">重新洗牌</button>
+  <button class="btn primary" id="nextBtn">下一个 →</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== 数据注入位 ===== */
+const COURSE = // 课内单词表，来自 Text A Language Focus 单词表（含音标）
+// 字段: en, ipa, pos, zh, unit
+[
+  // Book1 U6
+  {en:"in a row",ipa:"",pos:"",zh:"连续地",unit:"B1U6"},
+  {en:"doze off",ipa:"",pos:"",zh:"打瞌睡，打盹儿",unit:"B1U6"},
+  {en:"approve",ipa:"/əˈpruv/",pos:"v.",zh:"赞成；同意；批准",unit:"B1U6"},
+  {en:"strain",ipa:"/streɪn/",pos:"vt.",zh:"使紧张；绷紧",unit:"B1U6"},
+  {en:"mess",ipa:"/mɛs/",pos:"n.",zh:"脏乱状态",unit:"B1U6"},
+  {en:"foundation",ipa:"/faʊnˈdeɪʃən/",pos:"n.",zh:"基础；基本原理",unit:"B1U6"},
+  {en:"fabric",ipa:"/ˈfæbrɪk/",pos:"n.",zh:"织物，织品",unit:"B1U6"},
+  {en:"outbreak",ipa:"/ˈaʊtˌbreɪk/",pos:"n.",zh:"（疾病等的）爆发",unit:"B1U6"},
+  {en:"anniversary",ipa:"/ˌænəˈvərsəri/",pos:"n.",zh:"周年纪念日",unit:"B1U6"},
+  {en:"remarkable",ipa:"/rɪˈmɑrkəbəl/",pos:"a.",zh:"值得注意的；非凡的",unit:"B1U6"},
+  {en:"come to/reach a conclusion",ipa:"",pos:"",zh:"得出结论",unit:"B1U6"},
+  {en:"puzzle",ipa:"/ˈpəzəl/",pos:"n.",zh:"难题；谜",unit:"B1U6"},
+  {en:"concentrate",ipa:"/ˈkɑnsənˌtreɪt/",pos:"v.",zh:"聚集；聚精会神",unit:"B1U6"},
+  {en:"beyond (any) doubt",ipa:"",pos:"",zh:"毫无疑问",unit:"B1U6"},
+  {en:"not give/care a fig (for sb./sth.)",ipa:"",pos:"",zh:"对…毫不在乎",unit:"B1U6"},
+  {en:"presence",ipa:"/ˈprɛzəns/",pos:"n.",zh:"出席，到场",unit:"B1U6"},
+  {en:"undermine",ipa:"/ˈəndərˌmaɪn/",pos:"vt.",zh:"暗中破坏；逐渐损害",unit:"B1U6"},
+  {en:"(never) get anywhere/get nowhere",ipa:"",pos:"",zh:"一事无成",unit:"B1U6"},
+  {en:"flaw",ipa:"/flɔ/",pos:"n.",zh:"缺陷",unit:"B1U6"},
+  {en:"accordingly",ipa:"/əˈkɔrdɪŋli/",pos:"ad.",zh:"相应地；因此；从而",unit:"B1U6"},
+  {en:"caution",ipa:"/ˈkɔʃən/",pos:"n.",zh:"小心，谨慎",unit:"B1U6"},
+  {en:"believe in",ipa:"",pos:"",zh:"对…有信心；信仰，信任",unit:"B1U6"},
+  {en:"intuition",ipa:"/ˌɪntuˈɪʃən/",pos:"n.",zh:"直觉",unit:"B1U6"},
+  {en:"inspiration",ipa:"/ˌɪnspərˈeɪʃən/",pos:"n.",zh:"灵感",unit:"B1U6"},
+  {en:"at the turn of the century",ipa:"",pos:"",zh:"在世纪初",unit:"B1U6"},
+  {en:"impressive",ipa:"/ˌɪmˈprɛsɪv/",pos:"a.",zh:"给人以深刻印象的",unit:"B1U6"},
+  {en:"stimulate",ipa:"/ˈstɪmjəˌleɪt/",pos:"vt.",zh:"使兴奋；刺激",unit:"B1U6"},
+  {en:"intelligent",ipa:"/ˌɪnˈtɛləʤənt/",pos:"a.",zh:"有才智的；聪颖的",unit:"B1U6"},
+  {en:"talent",ipa:"/ˈtælənt/",pos:"n.",zh:"天赋；天才",unit:"B1U6"},
+  {en:"credit sth. to sb./sth.",ipa:"",pos:"",zh:"把…归于",unit:"B1U6"},
+  {en:"imagination",ipa:"/ˌɪˌmæʤəˈneɪʃən/",pos:"n.",zh:"想象力",unit:"B1U6"},
+  {en:"combine",ipa:"/ˈkɑmbaɪn/",pos:"v.",zh:"（使）结合；（使）联合",unit:"B1U6"},
+  {en:"if anything",ipa:"",pos:"",zh:"要说有什么区别的话；甚至正相反",unit:"B1U6"},
+  // B2U1
+  {en:"location",ipa:"/loʊˈkeɪʃən/",pos:"n.",zh:"地点，场所",unit:"B2U1"},
+  {en:"address",ipa:"/ˈæˌdrɛs/",pos:"vt.",zh:"向…讲话；着手解决（问题等）",unit:"B2U1"},
+  {en:"embarrass",ipa:"/ɪmˈbɛrəs/",pos:"vt.",zh:"使…尴尬/羞愧/紧张",unit:"B2U1"},
+  {en:"dumb",ipa:"/dəm/",pos:"a.",zh:"愚蠢的；哑的",unit:"B2U1"},
+  {en:"in unison",ipa:"",pos:"",zh:"一致地；一起",unit:"B2U1"},
+  {en:"consist of",ipa:"",pos:"",zh:"由…组成",unit:"B2U1"},
+  {en:"typical",ipa:"/ˈtɪpɪkəl/",pos:"a.",zh:"有代表性的；典型的",unit:"B2U1"},
+  {en:"assure",ipa:"/əˈʃʊr/",pos:"vt.",zh:"向（某人）保证，使确信",unit:"B2U1"},
+  {en:"know better (than that/to do sth.)",ipa:"",pos:"",zh:"明事理而不至于做某事",unit:"B2U1"},
+  {en:"fade",ipa:"/feɪd/",pos:"vi.",zh:"变黯淡，褪色；逐渐消失",unit:"B2U1"},
+  {en:"keep (sb.) in suspense",ipa:"",pos:"",zh:"使产生悬念，故意迟迟不告诉",unit:"B2U1"},
+  {en:"bet",ipa:"/bɛt/",pos:"vt.",zh:"敢肯定，确信",unit:"B2U1"},
+  {en:"distract",ipa:"/dɪˈstrækt/",pos:"vt.",zh:"使分心",unit:"B2U1"},
+  {en:"clench",ipa:"/klɛnʧ/",pos:"vt.",zh:"咬紧；握紧",unit:"B2U1"},
+  {en:"hysterical",ipa:"/hɪˈstɛrɪkəl/",pos:"a.",zh:"歇斯底里的",unit:"B2U1"},
+  {en:"somewhat",ipa:"/ˈsəmˈwət/",pos:"ad.",zh:"有几分",unit:"B2U1"},
+  {en:"glorious",ipa:"/ˈglɔriəs/",pos:"a.",zh:"极好的；辉煌的；光荣的",unit:"B2U1"},
+  {en:"hand down (to sb.)",ipa:"",pos:"",zh:"把…传下去",unit:"B2U1"},
+  {en:"at any rate",ipa:"",pos:"",zh:"无论如何，不管怎样",unit:"B2U1"},
+  {en:"community",ipa:"/kəmˈjunɪti/",pos:"n.",zh:"社区；社会",unit:"B2U1"},
+  {en:"welfare",ipa:"/ˈwɛlˌfɛr/",pos:"n.",zh:"福利；幸福",unit:"B2U1"},
+  {en:"narrow down",ipa:"",pos:"",zh:"缩小…的范围",unit:"B2U1"},
+  {en:"repeatedly",ipa:"/rɪˈpitɪdli/",pos:"ad.",zh:"反复地",unit:"B2U1"},
+  {en:"come over",ipa:"",pos:"",zh:"（某种感觉）突然影响（某人）",unit:"B2U1"},
+  {en:"scheme",ipa:"/skim/",pos:"n.",zh:"阴谋，诡计；计划",unit:"B2U1"},
+  {en:"worthwhile",ipa:"/ˈwərθˈwaɪl/",pos:"a.",zh:"值得做的",unit:"B2U1"},
+  {en:"frank",ipa:"/fræŋk/",pos:"a.",zh:"坦白的，直率的",unit:"B2U1"},
+  {en:"humiliate",ipa:"/hjuˈmɪliˌeɪt/",pos:"vt.",zh:"羞辱，使丢脸",unit:"B2U1"},
+  {en:"interference",ipa:"/ˌɪnərˈfɪrəns/",pos:"n.",zh:"干涉；干扰",unit:"B2U1"},
+  {en:"dread",ipa:"/drɛd/",pos:"n./vt.",zh:"畏惧，恐怖；担忧",unit:"B2U1"},
+  {en:"in charge of",ipa:"",pos:"",zh:"负责，主管",unit:"B2U1"},
+  {en:"proof",ipa:"/pruf/",pos:"n.",zh:"证据，证明",unit:"B2U1"},
+  {en:"over and over",ipa:"",pos:"",zh:"一再地；多次",unit:"B2U1"},
+  {en:"junior",ipa:"/ˈʤunjər/",pos:"a.",zh:"较年幼的；地位较低的",unit:"B2U1"},
+  {en:"annual",ipa:"/ˈænjuəl/",pos:"a.",zh:"年度的，一年一次的",unit:"B2U1"},
+  // B2U2
+  {en:"sweat",ipa:"/swɛt/",pos:"vi./n.",zh:"出汗；汗水",unit:"B2U2"},
+  {en:"competition",ipa:"/ˌkɑmpəˈtɪʃən/",pos:"n.",zh:"竞赛，比赛",unit:"B2U2"},
+  {en:"confront",ipa:"/kənˈfrənt/",pos:"vt.",zh:"面对；应对，处理",unit:"B2U2"},
+  {en:"highlight",ipa:"/ˈhaɪˌlaɪt/",pos:"n.",zh:"最精彩的部分",unit:"B2U2"},
+  {en:"grace",ipa:"/greɪs/",pos:"n.",zh:"优美，优雅；雅致",unit:"B2U2"},
+  {en:"fantasy",ipa:"/ˈfænəsi/",pos:"n.",zh:"幻想",unit:"B2U2"},
+  {en:"numerous",ipa:"/ˈnumərəs/",pos:"a.",zh:"许多的，无数的",unit:"B2U2"},
+  {en:"excitement",ipa:"/ɪkˈsaɪtmənt/",pos:"n.",zh:"兴奋，激动",unit:"B2U2"},
+  {en:"recur",ipa:"/rɪˈkər/",pos:"vi.",zh:"再来；再发生",unit:"B2U2"},
+  {en:"pass by",ipa:"",pos:"",zh:"经过",unit:"B2U2"},
+  {en:"coincide",ipa:"/ˌkoʊɪnˈsaɪd/",pos:"vi.",zh:"同时发生；一致",unit:"B2U2"},
+  {en:"on the other hand",ipa:"",pos:"",zh:"另一方面",unit:"B2U2"},
+  {en:"work out",ipa:"",pos:"",zh:"锻炼身体",unit:"B2U2"},
+  {en:"alternate",ipa:"/ˈɔltərˌneɪt/",pos:"a.",zh:"间隔的；轮流的",unit:"B2U2"},
+  {en:"dedication",ipa:"/ˌdɛdəˈkeɪʃən/",pos:"n.",zh:"奉献，献身",unit:"B2U2"},
+  {en:"determination",ipa:"/dɪˌtərməˈneɪʃən/",pos:"n.",zh:"决心；毅力",unit:"B2U2"},
+  {en:"on one/two/several occasion(s)",ipa:"",pos:"",zh:"有一（两、几）次",unit:"B2U2"},
+  {en:"reward",ipa:"/rɪˈwɔrd/",pos:"n.",zh:"报答；报偿",unit:"B2U2"},
+  {en:"vain",ipa:"/veɪn/",pos:"a.",zh:"虚荣的，自负的",unit:"B2U2"},
+  {en:"competitor",ipa:"/kəmˈpɛtɪtər/",pos:"n.",zh:"竞争者，对手",unit:"B2U2"},
+  {en:"emotion",ipa:"/ˈiˌmoʊʃən/",pos:"n.",zh:"激情，感情，情绪",unit:"B2U2"},
+  {en:"startle",ipa:"/ˈstɑrtəl/",pos:"vt.",zh:"使大吃一惊",unit:"B2U2"},
+  {en:"intensity",ipa:"/ˌɪnˈtɛnsɪti/",pos:"n.",zh:"紧张，强烈",unit:"B2U2"},
+  {en:"tension",ipa:"/ˈtɛnʃən/",pos:"n.",zh:"紧张，不安",unit:"B2U2"},
+  {en:"scared",ipa:"/skɛrd/",pos:"a.",zh:"惊恐的，害怕的",unit:"B2U2"},
+  {en:"stretch out",ipa:"",pos:"",zh:"伸展",unit:"B2U2"},
+  {en:"bring (sb.) back to earth",ipa:"",pos:"",zh:"使回到现实中",unit:"B2U2"},
+  {en:"in one's mind's eye",ipa:"",pos:"",zh:"在想像中",unit:"B2U2"},
+  {en:"hug",ipa:"/həg/",pos:"vt.",zh:"拥抱",unit:"B2U2"},
+  {en:"surround",ipa:"/səraʊnd/",pos:"vt.",zh:"围绕，包围",unit:"B2U2"},
+  {en:"congratulate",ipa:"/kənˈgræʧəˌleɪt/",pos:"vt.",zh:"祝贺；庆贺",unit:"B2U2"},
+  {en:"accomplishment",ipa:"/əˈkɑmplɪʃmənt/",pos:"n.",zh:"成就",unit:"B2U2"},
+  {en:"media",ipa:"/ˈmidiə/",pos:"n.",zh:"大众传播媒介",unit:"B2U2"},
+  // B2U3
+  {en:"system",ipa:"/ˈsɪstəm/",pos:"n.",zh:"系统",unit:"B2U3"},
+  {en:"throughout",ipa:"/θruaʊt/",pos:"prep.",zh:"自始至终；到处",unit:"B2U3"},
+  {en:"favorite",ipa:"/ˈfeɪvərɪt/",pos:"a./n.",zh:"中意的，特别喜爱的；喜爱的人或物",unit:"B2U3"},
+  {en:"wander",ipa:"/ˈwɑndər/",pos:"vi.",zh:"漫步，漫游",unit:"B2U3"},
+  {en:"scan",ipa:"/skæn/",pos:"vt.",zh:"浏览；细看",unit:"B2U3"},
+  {en:"catch sb.'s eye",ipa:"",pos:"",zh:"引起某人的注意",unit:"B2U3"},
+  {en:"guarantee",ipa:"/ˌgɛrənˈti/",pos:"vt.",zh:"承诺，保证",unit:"B2U3"},
+  {en:"stack",ipa:"/stæk/",pos:"vt./n.",zh:"叠放；（一）叠，（一）堆",unit:"B2U3"},
+  {en:"stick to",ipa:"",pos:"",zh:"粘住",unit:"B2U3"},
+  {en:"anticipate",ipa:"/ænˈtɪsəˌpeɪt/",pos:"vt.",zh:"期待",unit:"B2U3"},
+  {en:"pace",ipa:"/peɪs/",pos:"vt.",zh:"规定…速率；调整生活和活动节奏",unit:"B2U3"},
+  {en:"charm",ipa:"/ʧɑrm/",pos:"vt.",zh:"吸引，使陶醉",unit:"B2U3"},
+  {en:"profession",ipa:"/prəˈfɛʃən/",pos:"n.",zh:"职业",unit:"B2U3"},
+  {en:"for a moment",ipa:"",pos:"",zh:"片刻，一会儿",unit:"B2U3"},
+  {en:"amaze",ipa:"/əˈmeɪz/",pos:"vt.",zh:"使惊奇",unit:"B2U3"},
+  {en:"by oneself",ipa:"",pos:"",zh:"独自，单独地",unit:"B2U3"},
+  {en:"now and then",ipa:"",pos:"",zh:"偶尔，有时",unit:"B2U3"},
+  {en:"magnificent",ipa:"/mægˈnɪfɪsənt/",pos:"a.",zh:"壮丽的",unit:"B2U3"},
+  {en:"be big on",ipa:"",pos:"",zh:"对…热心；偏爱…",unit:"B2U3"},
+  {en:"the hard way",ipa:"",pos:"",zh:"以吃力的方式或高昂的代价",unit:"B2U3"},
+  {en:"obtain",ipa:"/əbˈteɪn/",pos:"vt.",zh:"获得",unit:"B2U3"},
+  {en:"back and forth",ipa:"",pos:"",zh:"来来回回地",unit:"B2U3"},
+  {en:"not give a second thought/without a second thought",ipa:"",pos:"",zh:"不再考虑；不担心，不在乎",unit:"B2U3"},
+  {en:"assume",ipa:"/əˈsum/",pos:"vt.",zh:"认为，想当然",unit:"B2U3"},
+  {en:"assignment",ipa:"/əˈsaɪnmənt/",pos:"n.",zh:"作业",unit:"B2U3"},
+  {en:"interview",ipa:"/ˈɪntərvˌju/",pos:"vt.",zh:"采访；面试",unit:"B2U3"},
+  {en:"turn sth. on its head",ipa:"",pos:"",zh:"倒过来；使完全不一样",unit:"B2U3"},
+  {en:"take in",ipa:"",pos:"",zh:"看；领会；记住",unit:"B2U3"},
+  {en:"recognition",ipa:"/ˌrɛkɪgˈnɪʃən/",pos:"n.",zh:"认出，识别",unit:"B2U3"},
+  {en:"steady",ipa:"/ˈstɛdi/",pos:"a.",zh:"持续的，平稳的",unit:"B2U3"},
+  {en:"narrative",ipa:"/ˈnɛrətɪv/",pos:"n.",zh:"故事",unit:"B2U3"},
+  {en:"glimpse",ipa:"/glɪmps/",pos:"v./n.",zh:"瞥见；看一眼；一瞥",unit:"B2U3"},
+  // B2U4
+  {en:"commitment",ipa:"/kəˈmɪtmənt/",pos:"n.",zh:"投入；承诺",unit:"B2U4"},
+  {en:"sign (sb.) up (for sth.)",ipa:"",pos:"",zh:"报名（让某人）参加",unit:"B2U4"},
+  {en:"each and every",ipa:"",pos:"",zh:"（用于强调）每一个",unit:"B2U4"},
+  {en:"definitely",ipa:"/ˈdɛfənətli/",pos:"ad.",zh:"肯定，毫无疑问",unit:"B2U4"},
+  {en:"concept",ipa:"/ˈkɑnsɛpt/",pos:"n.",zh:"概念；观念",unit:"B2U4"},
+  {en:"episode",ipa:"/ˈɛpɪˌsoʊd/",pos:"n.",zh:"（电视连续剧的）一集；（小说的）一个事件",unit:"B2U4"},
+  {en:"appreciate",ipa:"/əˈpriʃiˌeɪt/",pos:"vt.",zh:"欣赏；感激",unit:"B2U4"},
+  {en:"on a daily basis",ipa:"",pos:"",zh:"每一天",unit:"B2U4"},
+  {en:"intention",ipa:"/ˌɪnˈtɛnʧən/",pos:"n.",zh:"打算；计划；意图",unit:"B2U4"},
+  {en:"speak volumes",ipa:"",pos:"",zh:"不言自明",unit:"B2U4"},
+  {en:"frustration",ipa:"/frəˈstreɪʃən/",pos:"n.",zh:"懊丧，懊恼",unit:"B2U4"},
+  {en:"wear sb./sth. down",ipa:"",pos:"",zh:"使精疲力竭；磨垮",unit:"B2U4"},
+  {en:"give up",ipa:"",pos:"",zh:"放弃",unit:"B2U4"},
+  {en:"reputation",ipa:"/ˌrɛpjəˈteɪʃən/",pos:"n.",zh:"名誉；名声",unit:"B2U4"},
+  {en:"let alone",ipa:"",pos:"",zh:"更不用说",unit:"B2U4"},
+  {en:"evident",ipa:"/ˈɛvədənt/",pos:"a.",zh:"清楚的；显而易见的",unit:"B2U4"},
+  {en:"essence",ipa:"/ˈɛsəns/",pos:"n.",zh:"本质；精髓",unit:"B2U4"},
+  {en:"exceed",ipa:"/ɪkˈsid/",pos:"vt.",zh:"超过；超越",unit:"B2U4"},
+  {en:"incredible",ipa:"/ˌɪnˈkrɛdəbəl/",pos:"a.",zh:"难以置信的",unit:"B2U4"},
+  {en:"take … by storm",ipa:"",pos:"",zh:"征服",unit:"B2U4"},
+  {en:"multiple",ipa:"/ˈməltəpəl/",pos:"a.",zh:"多个的；多种多样的",unit:"B2U4"},
+  {en:"register",ipa:"/ˈrɛʤɪstər/",pos:"v.",zh:"登记，注册",unit:"B2U4"},
+  {en:"subject sb./sth. to sth.",ipa:"",pos:"",zh:"使经受；使遭受",unit:"B2U4"},
+  {en:"productive",ipa:"/pərˈdəktɪv/",pos:"a.",zh:"富有成效的；多产的",unit:"B2U4"},
+  {en:"evolve",ipa:"/ɪˈvɑlv/",pos:"v.",zh:"（使）逐步发展；（使）逐步演变",unit:"B2U4"},
+  {en:"and so forth",ipa:"",pos:"",zh:"…等等",unit:"B2U4"},
+  {en:"route",ipa:"/rut/",pos:"n.",zh:"路线；途径",unit:"B2U4"},
+  {en:"thrive",ipa:"/θraɪv/",pos:"vi.",zh:"茁壮成长；兴旺，繁荣",unit:"B2U4"},
+  {en:"thanks to",ipa:"",pos:"",zh:"幸亏；由于，因为",unit:"B2U4"},
+  {en:"personality",ipa:"/ˌpərsəˈnælɪti/",pos:"n.",zh:"人格，个性",unit:"B2U4"},
+  // B2U5
+  {en:"controversy",ipa:"/ˈkɑntrəˌvərsi/",pos:"n.",zh:"争论；争议",unit:"B2U5"},
+  {en:"explore",ipa:"/ɪkˈsplɔr/",pos:"vt.",zh:"探究，探索",unit:"B2U5"},
+  {en:"researcher",ipa:"/ˈrisərʧər/",pos:"n.",zh:"研究者，研究员",unit:"B2U5"},
+  {en:"encounter",ipa:"/ɪnˈkaʊnər/",pos:"vt.",zh:"遇到，遭遇",unit:"B2U5"},
+  {en:"reveal",ipa:"/rɪˈvil/",pos:"vt.",zh:"展示；揭露",unit:"B2U5"},
+  {en:"dominant",ipa:"/ˈdɑmənənt/",pos:"a.",zh:"统治的；占优势的",unit:"B2U5"},
+  {en:"only to",ipa:"",pos:"",zh:"结果却，不料",unit:"B2U5"},
+  {en:"negotiate",ipa:"/nɪˈgoʊʃiˌeɪt/",pos:"vi.",zh:"谈判，协商",unit:"B2U5"},
+  {en:"maintain",ipa:"/meɪnˈteɪn/",pos:"vt.",zh:"维持；保持",unit:"B2U5"},
+  {en:"relieve",ipa:"/rɪˈliv/",pos:"vt.",zh:"解除（痛苦、焦虑等）；减轻",unit:"B2U5"},
+  {en:"undertake",ipa:"/ˈəndərˌteɪk/",pos:"vt.",zh:"着手做，从事；承担（任务等）",unit:"B2U5"},
+  {en:"figure out",ipa:"",pos:"",zh:"理解；推断出",unit:"B2U5"},
+  {en:"switch",ipa:"/swɪʧ/",pos:"v.",zh:"转换，变换",unit:"B2U5"},
+  {en:"cooperate",ipa:"/koʊˈɑpərˌeɪt/",pos:"vi.",zh:"合作，协作",unit:"B2U5"},
+  {en:"in sb.'s interest(s)",ipa:"",pos:"",zh:"为了某人的利益",unit:"B2U5"},
+  {en:"go far",ipa:"",pos:"",zh:"帮助很大；很有成效",unit:"B2U5"},
+  {en:"assess",ipa:"/əˈsɛs/",pos:"vt.",zh:"评估，估量",unit:"B2U5"},
+  {en:"judgment",ipa:"/ˈʤəʤmənt/",pos:"n.",zh:"判断；意见，看法",unit:"B2U5"},
+  {en:"at first",ipa:"",pos:"",zh:"起先",unit:"B2U5"},
+  {en:"emergency",ipa:"/ˈimərʤənsi/",pos:"n.",zh:"紧急情况；突发事件",unit:"B2U5"},
+  {en:"go wrong",ipa:"",pos:"",zh:"出问题，出故障",unit:"B2U5"},
+  {en:"size up",ipa:"",pos:"",zh:"估量，判断",unit:"B2U5"},
+  {en:"within reach (of sth.)",ipa:"",pos:"",zh:"伸手可及；靠近",unit:"B2U5"},
+  {en:"evidence",ipa:"/ˈɛvədəns/",pos:"n.",zh:"证据；迹象",unit:"B2U5"},
+  {en:"deceive",ipa:"/dɪˈsiv/",pos:"v.",zh:"欺骗",unit:"B2U5"},
+  {en:"gaze",ipa:"/geɪz/",pos:"n./v.",zh:"凝视，注视",unit:"B2U5"},
+  {en:"give in",ipa:"",pos:"",zh:"让步；屈服",unit:"B2U5"},
+  {en:"underneath",ipa:"/ˌəndərˈniθ/",pos:"prep./ad.",zh:"在（…）下面，在（…）底下",unit:"B2U5"},
+  {en:"survive",ipa:"/sərˈvaɪv/",pos:"v.",zh:"幸存；幸免于难",unit:"B2U5"},
+  {en:"wipe out",ipa:"",pos:"",zh:"消灭，消除",unit:"B2U5"},
+  {en:"horizon",ipa:"/hərˈaɪzən/",pos:"n.",zh:"眼界，见识；地平线",unit:"B2U5"},
+  // B2U6
+  {en:"corrupt",ipa:"/kərəpt/",pos:"vt.",zh:"讹用，使（语言）变得不标准；腐蚀，贿赂",unit:"B2U6"},
+  {en:"ban",ipa:"/bæn/",pos:"vt.",zh:"禁止，取缔",unit:"B2U6"},
+  {en:"desirable",ipa:"/dɪˈzaɪərəbəl/",pos:"a.",zh:"值得有的，值得做的",unit:"B2U6"},
+  {en:"invent",ipa:"/ˌɪnˈvɛnt/",pos:"vt.",zh:"发明",unit:"B2U6"},
+  {en:"be supposed to do",ipa:"",pos:"",zh:"应该做",unit:"B2U6"},
+  {en:"fascinating",ipa:"/ˈfæsəˌneɪtɪŋ/",pos:"a.",zh:"迷人的，有极大吸引力的",unit:"B2U6"},
+  {en:"fascinate",ipa:"/ˈfæsəˌneɪt/",pos:"v.",zh:"（使）着迷",unit:"B2U6"},
+  {en:"strictly speaking",ipa:"",pos:"",zh:"严格地讲",unit:"B2U6"},
+  {en:"tolerance",ipa:"/ˈtɑlərəns/",pos:"n.",zh:"容忍，宽容；忍耐",unit:"B2U6"},
+  {en:"extent",ipa:"/ɪkˈstɛnt/",pos:"n.",zh:"范围；程度",unit:"B2U6"},
+  {en:"to a (very real, certain, etc.) extent",ipa:"",pos:"",zh:"在（极大、某种）程度上",unit:"B2U6"},
+  {en:"core",ipa:"/kɔr/",pos:"n.",zh:"核心；果核",unit:"B2U6"},
+  {en:"arouse",ipa:"/əraʊz/",pos:"vt.",zh:"唤起，激起",unit:"B2U6"},
+  {en:"opportunity",ipa:"/ˌɑpərˈtunəti/",pos:"n.",zh:"机会",unit:"B2U6"},
+  {en:"for effect",ipa:"",pos:"",zh:"为了增强效果，为了引起注意",unit:"B2U6"},
+  {en:"invade",ipa:"/ˌɪnˈveɪd/",pos:"vt.",zh:"侵入，侵略",unit:"B2U6"},
+  {en:"mystery",ipa:"/ˈmɪstəri/",pos:"n.",zh:"神秘的事",unit:"B2U6"},
+  {en:"resemble",ipa:"/rɪˈzɛmbəl/",pos:"vt.",zh:"与…相似",unit:"B2U6"},
+  {en:"resemblance",ipa:"/rɪˈzɛmbləns/",pos:"n.",zh:"相似（之处）",unit:"B2U6"},
+  {en:"descend",ipa:"/dɪˈsɛnd/",pos:"vi.",zh:"起源于；下降，下来",unit:"B2U6"},
+  {en:"come up with",ipa:"",pos:"",zh:"想出（计划、回答等）；提出",unit:"B2U6"},
+  {en:"establish",ipa:"/ɪˈstæblɪʃ/",pos:"vt.",zh:"建立，确立",unit:"B2U6"},
+  {en:"slip",ipa:"/slɪp/",pos:"vi.",zh:"悄悄地走",unit:"B2U6"},
+  {en:"pass (sth.) on/pass on (sth.) to (sb.)",ipa:"",pos:"",zh:"将…传给…",unit:"B2U6"},
+  {en:"replace",ipa:"/ˌriˈpleɪs/",pos:"vt.",zh:"取代",unit:"B2U6"},
+  {en:"modify",ipa:"/ˈmɑdəˌfaɪ/",pos:"vt.",zh:"修改，更改",unit:"B2U6"},
+  {en:"spring from",ipa:"",pos:"",zh:"源于",unit:"B2U6"},
+  {en:"source",ipa:"/sɔrs/",pos:"n.",zh:"源头，来源",unit:"B2U6"},
+  {en:"out of control",ipa:"",pos:"",zh:"失去控制，不受约束",unit:"B2U6"},
+  {en:"put … into practice",ipa:"",pos:"",zh:"将…付诸实施",unit:"B2U6"},
+  {en:"represent",ipa:"/ˌrɛprɪˈzɛnt/",pos:"vt.",zh:"代表；象征",unit:"B2U6"},
+  {en:"individual",ipa:"/ˌɪndəˈvɪʤəwəl/",pos:"n./a.",zh:"个人，个体；个人的，个体的",unit:"B2U6"},
+  {en:"strike out",ipa:"",pos:"",zh:"创造，设计；启程",unit:"B2U6"},
+  {en:"nourish",ipa:"/nərɪʃ/",pos:"vt.",zh:"滋养，培育",unit:"B2U6"},
+  {en:"principle",ipa:"/ˈprɪnsəpəl/",pos:"n.",zh:"原则；主义",unit:"B2U6"},
+  {en:"spring up",ipa:"",pos:"",zh:"涌现",unit:"B2U6"},
+  {en:"preserve",ipa:"/prɪˈzərv/",pos:"n./vt.",zh:"禁猎地；保护，保存",unit:"B2U6"},
+  {en:"intellectual",ipa:"/ˌɪnəˈlɛkʧuəl/",pos:"a.",zh:"智力的",unit:"B2U6"},
+];
+const HANDBOOK = [{"en":"abandon","pos":"v.","zh":"放弃；抛弃；遗弃"},{"en":"abundant","pos":"adj.","zh":"丰富的，充裕的"},{"en":"academic","pos":"adj./n.","zh":"学术的；学者"},{"en":"accelerate","pos":"v.","zh":"加速，促进"},{"en":"acceptable","pos":"adj.","zh":"可接受的，合意的"},{"en":"accomplish","pos":"v.","zh":"完成，实现"},{"en":"accumulate","pos":"v.","zh":"积累，积聚"},{"en":"accurate","pos":"adj.","zh":"精确的，准确的"},{"en":"accuse","pos":"v.","zh":"控告，指责"},{"en":"acquire","pos":"v.","zh":"获得，取得；学到"},{"en":"adapt","pos":"v.","zh":"使适应；改编"},{"en":"adequate","pos":"adj.","zh":"足够的，适当的"},{"en":"adjust","pos":"v.","zh":"调整，调节；适应"},{"en":"administration","pos":"n.","zh":"管理；行政机构"},{"en":"admire","pos":"v.","zh":"钦佩；赞赏"},{"en":"adopt","pos":"v.","zh":"采纳，采用；收养"},{"en":"advocate","pos":"v./n.","zh":"提倡，主张；提倡者"},{"en":"affect","pos":"v.","zh":"影响；感动"},{"en":"afford","pos":"v.","zh":"买得起；承担得起"},{"en":"aggressive","pos":"adj.","zh":"好斗的；有进取心的"},{"en":"alternative","pos":"n./adj.","zh":"选择；替代的"},{"en":"ambiguous","pos":"adj.","zh":"模棱两可的，含糊的"},{"en":"ambition","pos":"n.","zh":"雄心，抱负"},{"en":"analyze","pos":"v.","zh":"分析，分解"},{"en":"ancient","pos":"adj.","zh":"古代的，古老的"},{"en":"anniversary","pos":"n.","zh":"周年纪念日"},{"en":"anticipate","pos":"v.","zh":"预期，预料"},{"en":"anxiety","pos":"n.","zh":"焦虑，忧虑"},{"en":"apparent","pos":"adj.","zh":"明显的；表面的"},{"en":"appeal","pos":"v./n.","zh":"呼吁；吸引力"},{"en":"appreciate","pos":"v.","zh":"欣赏；感激；理解"},{"en":"appropriate","pos":"adj.","zh":"适当的，恰当的"},{"en":"approve","pos":"v.","zh":"批准；赞成"},{"en":"approximate","pos":"adj./v.","zh":"近似的；接近"},{"en":"arbitrary","pos":"adj.","zh":"任意的，武断的"},{"en":"architecture","pos":"n.","zh":"建筑学；结构"},{"en":"argue","pos":"v.","zh":"争论；主张"},{"en":"arise","pos":"v.","zh":"出现；产生；起因于"},{"en":"arrange","pos":"v.","zh":"安排；整理；排列"},{"en":"aspect","pos":"n.","zh":"方面；外观"},{"en":"assemble","pos":"v.","zh":"集合；装配"},{"en":"assess","pos":"v.","zh":"评估，评定"},{"en":"assign","pos":"v.","zh":"分配；指派；布置"},{"en":"assist","pos":"v.","zh":"帮助，协助"},{"en":"associate","pos":"v./n.","zh":"联想；同事"},{"en":"assume","pos":"v.","zh":"假定；承担；呈现"},{"en":"assure","pos":"v.","zh":"保证；使确信"},{"en":"attach","pos":"v.","zh":"附上；使依恋"},{"en":"attain","pos":"v.","zh":"达到，获得"},{"en":"attitude","pos":"n.","zh":"态度，看法"},{"en":"attribute","pos":"v./n.","zh":"归因于；属性"},{"en":"authority","pos":"n.","zh":"权威；当局"},{"en":"available","pos":"adj.","zh":"可获得的；有空的"},{"en":"awareness","pos":"n.","zh":"意识，觉悟"},{"en":"awkward","pos":"adj.","zh":"尴尬的；笨拙的"},{"en":"barrier","pos":"n.","zh":"障碍，屏障"},{"en":"beneficial","pos":"adj.","zh":"有益的，有利的"},{"en":"bias","pos":"n./v.","zh":"偏见；使有偏见"},{"en":"bond","pos":"n./v.","zh":"纽带；结合"},{"en":"boost","pos":"v./n.","zh":"促进；提高"},{"en":"brilliant","pos":"adj.","zh":"辉煌的；卓越的"},{"en":"budget","pos":"n./v.","zh":"预算"},{"en":"bureaucracy","pos":"n.","zh":"官僚机构；官僚作风"},{"en":"calculate","pos":"v.","zh":"计算；估计"},{"en":"campaign","pos":"n./v.","zh":"运动；战役"},{"en":"capable","pos":"adj.","zh":"有能力的，能干的"},{"en":"capacity","pos":"n.","zh":"容量；能力"},{"en":"capture","pos":"v.","zh":"俘获；捕捉"},{"en":"category","pos":"n.","zh":"种类，类别"},{"en":"cease","pos":"v.","zh":"停止，终止"},{"en":"challenge","pos":"n./v.","zh":"挑战；质疑"},{"en":"characteristic","pos":"n./adj.","zh":"特征；典型的"},{"en":"circumstance","pos":"n.","zh":"环境，情况"},{"en":"cite","pos":"v.","zh":"引用；提及"},{"en":"civilian","pos":"n./adj.","zh":"平民；民用的"},{"en":"clarify","pos":"v.","zh":"澄清，阐明"},{"en":"classify","pos":"v.","zh":"分类，归类"},{"en":"collapse","pos":"v./n.","zh":"倒塌；崩溃"},{"en":"colleague","pos":"n.","zh":"同事，同僚"},{"en":"commit","pos":"v.","zh":"犯（错）；承诺；投入"},{"en":"commitment","pos":"n.","zh":"承诺；投入"},{"en":"communicate","pos":"v.","zh":"交流，沟通"},{"en":"community","pos":"n.","zh":"社区；共同体"},{"en":"compare","pos":"v.","zh":"比较，对比"},{"en":"compensate","pos":"v.","zh":"补偿，弥补"},{"en":"compete","pos":"v.","zh":"竞争，比赛"},{"en":"complain","pos":"v.","zh":"抱怨，投诉"},{"en":"complex","pos":"adj./n.","zh":"复杂的；综合体"},{"en":"complicated","pos":"adj.","zh":"复杂的，难懂的"},{"en":"component","pos":"n.","zh":"组成部分，成分"},{"en":"compromise","pos":"n./v.","zh":"妥协，折中"},{"en":"conceal","pos":"v.","zh":"隐藏，隐瞒"},{"en":"concentrate","pos":"v.","zh":"集中；专心"},{"en":"concept","pos":"n.","zh":"概念，观念"},{"en":"concerning","pos":"prep.","zh":"关于"},{"en":"conclude","pos":"v.","zh":"结束；得出结论"},{"en":"condemn","pos":"v.","zh":"谴责；判刑"},{"en":"conduct","pos":"v./n.","zh":"进行；行为"},{"en":"confess","pos":"v.","zh":"承认，坦白"},{"en":"confidence","pos":"n.","zh":"信心；信任"},{"en":"confirm","pos":"v.","zh":"证实，确认"},{"en":"conflict","pos":"n./v.","zh":"冲突，矛盾"},{"en":"conform","pos":"v.","zh":"遵守；符合"},{"en":"confront","pos":"v.","zh":"面对，对抗"},{"en":"confuse","pos":"v.","zh":"使困惑；混淆"},{"en":"consequence","pos":"n.","zh":"结果，后果"},{"en":"conservative","pos":"adj./n.","zh":"保守的；保守派"},{"en":"considerable","pos":"adj.","zh":"相当大的，重要的"},{"en":"consistent","pos":"adj.","zh":"一致的；始终如一的"},{"en":"constant","pos":"adj./n.","zh":"不变的；常数"},{"en":"constitute","pos":"v.","zh":"构成，组成"},{"en":"construct","pos":"v.","zh":"建造；构造"},{"en":"consult","pos":"v.","zh":"咨询，请教"},{"en":"consume","pos":"v.","zh":"消耗；消费"},{"en":"contemporary","pos":"adj.","zh":"当代的；同时代的"},{"en":"contemplate","pos":"v.","zh":"沉思；考虑"},{"en":"contend","pos":"v.","zh":"争夺；主张"},{"en":"context","pos":"n.","zh":"背景，语境"},{"en":"continuous","pos":"adj.","zh":"连续的，不断的"},{"en":"contradict","pos":"v.","zh":"反驳；与…矛盾"},{"en":"contribute","pos":"v.","zh":"贡献；促成；投稿"},{"en":"controversial","pos":"adj.","zh":"有争议的"},{"en":"convenient","pos":"adj.","zh":"方便的，便利的"},{"en":"conventional","pos":"adj.","zh":"传统的；常规的"},{"en":"convey","pos":"v.","zh":"传达；运送"},{"en":"convince","pos":"v.","zh":"使信服，说服"},{"en":"cooperate","pos":"v.","zh":"合作，协作"},{"en":"coordinate","pos":"v.","zh":"协调；使配合"},{"en":"cope","pos":"v.","zh":"（成功地）应对，处理"},{"en":"core","pos":"n./adj.","zh":"核心；核心的"},{"en":"correspond","pos":"v.","zh":"相符；通信"},{"en":"counter","pos":"v./n.","zh":"反对；柜台"},{"en":"crisis","pos":"n.","zh":"危机，危急关头"},{"en":"criterion","pos":"n.","zh":"标准，准则"},{"en":"critical","pos":"adj.","zh":"批判的；关键的；危急的"},{"en":"crucial","pos":"adj.","zh":"至关重要的"},{"en":"cultivate","pos":"v.","zh":"培养；耕种"},{"en":"curiosity","pos":"n.","zh":"好奇心"},{"en":"currency","pos":"n.","zh":"货币；流通"},{"en":"debate","pos":"n./v.","zh":"辩论，争论"},{"en":"decade","pos":"n.","zh":"十年"},{"en":"decline","pos":"v./n.","zh":"下降；婉拒"},{"en":"dedicate","pos":"v.","zh":"致力于；献给"},{"en":"defeat","pos":"v./n.","zh":"击败；失败"},{"en":"defend","pos":"v.","zh":"保卫；辩护"},{"en":"deficiency","pos":"n.","zh":"缺乏；缺陷"},{"en":"define","pos":"v.","zh":"定义；限定"},{"en":"definite","pos":"adj.","zh":"明确的，确定的"},{"en":"delicate","pos":"adj.","zh":"精美的；微妙的；易碎的"},{"en":"deliberate","pos":"adj./v.","zh":"故意的；仔细考虑"},{"en":"demand","pos":"n./v.","zh":"要求；需求"},{"en":"demonstrate","pos":"v.","zh":"证明；演示；示威"},{"en":"dense","pos":"adj.","zh":"密集的；浓密的"},{"en":"deny","pos":"v.","zh":"否认；拒绝"},{"en":"depict","pos":"v.","zh":"描绘，描述"},{"en":"deposit","pos":"n./v.","zh":"存款；沉积"},{"en":"depress","pos":"v.","zh":"使沮丧；压低"},{"en":"deprive","pos":"v.","zh":"剥夺，使丧失"},{"en":"derive","pos":"v.","zh":"得到；源于"},{"en":"descend","pos":"v.","zh":"下降，下来"},{"en":"deserve","pos":"v.","zh":"应得，值得"},{"en":"desire","pos":"n./v.","zh":"渴望，欲望"},{"en":"desperate","pos":"adj.","zh":"绝望的；拼命的"},{"en":"destination","pos":"n.","zh":"目的地，终点"},{"en":"detect","pos":"v.","zh":"察觉，发现"},{"en":"determine","pos":"v.","zh":"决定；确定"},{"en":"devote","pos":"v.","zh":"致力于；奉献"},{"en":"dignity","pos":"n.","zh":"尊严；高贵"},{"en":"diminish","pos":"v.","zh":"减少，缩小"},{"en":"discipline","pos":"n./v.","zh":"纪律；学科；训练"},{"en":"disclose","pos":"v.","zh":"揭露，透露"},{"en":"discrimination","pos":"n.","zh":"歧视；辨别"},{"en":"dispute","pos":"n./v.","zh":"争论，争端"},{"en":"distinct","pos":"adj.","zh":"明显的；独特的"},{"en":"distinguish","pos":"v.","zh":"区分，辨别"},{"en":"distort","pos":"v.","zh":"扭曲；歪曲"},{"en":"distribute","pos":"v.","zh":"分配；分发"},{"en":"disturb","pos":"v.","zh":"打扰；扰乱"},{"en":"diverse","pos":"adj.","zh":"多种多样的"},{"en":"domestic","pos":"adj.","zh":"国内的；家庭的"},{"en":"dominate","pos":"v.","zh":"支配，统治"},{"en":"dramatic","pos":"adj.","zh":"戏剧性的；急剧的"},{"en":"duration","pos":"n.","zh":"持续时间"},{"en":"dynamic","pos":"adj./n.","zh":"动态的；动力"},{"en":"eager","pos":"adj.","zh":"渴望的，热切的"},{"en":"economic","pos":"adj.","zh":"经济的，经济学的"},{"en":"efficient","pos":"adj.","zh":"高效的，有效率的"},{"en":"elaborate","pos":"adj./v.","zh":"精心制作的；详尽阐述"},{"en":"element","pos":"n.","zh":"元素；要素"},{"en":"eliminate","pos":"v.","zh":"消除，排除"},{"en":"embarrass","pos":"v.","zh":"使尴尬"},{"en":"embrace","pos":"v.","zh":"拥抱；接受"},{"en":"emerge","pos":"v.","zh":"出现，浮现"},{"en":"emphasize","pos":"v.","zh":"强调，着重"},{"en":"empirical","pos":"adj.","zh":"经验主义的，实证的"},{"en":"enable","pos":"v.","zh":"使能够，使可能"},{"en":"encounter","pos":"v./n.","zh":"遇到；遭遇"},{"en":"endure","pos":"v.","zh":"忍受；持久"},{"en":"enhance","pos":"v.","zh":"提高，增强"},{"en":"enormous","pos":"adj.","zh":"巨大的，庞大的"},{"en":"ensure","pos":"v.","zh":"保证，确保"},{"en":"enthusiasm","pos":"n.","zh":"热情，热忱"},{"en":"entitle","pos":"v.","zh":"使有权利；给…题名"},{"en":"equip","pos":"v.","zh":"装备，配备"},{"en":"equivalent","pos":"adj./n.","zh":"相等的；等价物"},{"en":"essential","pos":"adj.","zh":"必要的；本质的"},{"en":"establish","pos":"v.","zh":"建立，确立"},{"en":"estimate","pos":"v./n.","zh":"估计，估算"},{"en":"evaluate","pos":"v.","zh":"评价，评估"},{"en":"evidence","pos":"n.","zh":"证据，证明"},{"en":"evident","pos":"adj.","zh":"明显的，明白的"},{"en":"evolve","pos":"v.","zh":"进化；逐渐发展"},{"en":"exaggerate","pos":"v.","zh":"夸大，夸张"},{"en":"exceed","pos":"v.","zh":"超过，超出"},{"en":"exceptional","pos":"adj.","zh":"卓越的；例外的"},{"en":"exclude","pos":"v.","zh":"排除，把…排斥在外"},{"en":"exhaust","pos":"v./n.","zh":"使精疲力竭；废气"},{"en":"exhibit","pos":"v./n.","zh":"展览；表现"},{"en":"existence","pos":"n.","zh":"存在；生存"},{"en":"expand","pos":"v.","zh":"扩大，扩展"},{"en":"expense","pos":"n.","zh":"花费，费用"},{"en":"explicit","pos":"adj.","zh":"明确的，清晰的"},{"en":"exploit","pos":"v.","zh":"利用；开发；剥削"},{"en":"explore","pos":"v.","zh":"探索，勘探"},{"en":"expose","pos":"v.","zh":"暴露；揭露"},{"en":"extend","pos":"v.","zh":"延伸；扩展"},{"en":"external","pos":"adj.","zh":"外部的，外面的"},{"en":"extraordinary","pos":"adj.","zh":"非凡的，特别的"},{"en":"facilitate","pos":"v.","zh":"促进，使便利"},{"en":"faculty","pos":"n.","zh":"能力；全体教员；系"},{"en":"fascinate","pos":"v.","zh":"使着迷，迷住"},{"en":"feasible","pos":"adj.","zh":"可行的"},{"en":"feature","pos":"n./v.","zh":"特征；以…为特色"},{"en":"fertile","pos":"adj.","zh":"肥沃的；多产的"},{"en":"finance","pos":"n./v.","zh":"财政；为…提供资金"},{"en":"flexible","pos":"adj.","zh":"灵活的；可弯曲的"},{"en":"flourish","pos":"v.","zh":"繁荣，茂盛"},{"en":"fluctuate","pos":"v.","zh":"波动，起伏"},{"en":"forbid","pos":"v.","zh":"禁止，不许"},{"en":"formulate","pos":"v.","zh":"制定；构想"},{"en":"foster","pos":"v.","zh":"培养；促进；收养"},{"en":"fragile","pos":"adj.","zh":"脆弱的，易碎的"},{"en":"framework","pos":"n.","zh":"框架，结构"},{"en":"frequent","pos":"adj.","zh":"频繁的，经常的"},{"en":"frustrate","pos":"v.","zh":"使受挫，使沮丧"},{"en":"fulfill","pos":"v.","zh":"履行；实现；满足"},{"en":"fundamental","pos":"adj.","zh":"基本的，根本的"},{"en":"furthermore","pos":"adv.","zh":"此外，而且"},{"en":"generate","pos":"v.","zh":"产生，生成"},{"en":"generous","pos":"adj.","zh":"慷慨的；大量的"},{"en":"genuine","pos":"adj.","zh":"真正的；真诚的"},{"en":"gradual","pos":"adj.","zh":"逐渐的，渐进的"},{"en":"grant","pos":"v./n.","zh":"授予；拨款"},{"en":"guarantee","pos":"v./n.","zh":"保证，担保"},{"en":"guideline","pos":"n.","zh":"指导方针，准则"},{"en":"habitat","pos":"n.","zh":"栖息地"},{"en":"harsh","pos":"adj.","zh":"严厉的；刺耳的；恶劣的"},{"en":"heritage","pos":"n.","zh":"遗产，传统"},{"en":"hesitate","pos":"v.","zh":"犹豫，迟疑"},{"en":"highlight","pos":"v./n.","zh":"突出；亮点"},{"en":"hostile","pos":"adj.","zh":"敌对的，有敌意的"},{"en":"humble","pos":"adj.","zh":"谦逊的；卑微的"},{"en":"identical","pos":"adj.","zh":"完全相同的"},{"en":"identify","pos":"v.","zh":"识别；确认；认同"},{"en":"ignore","pos":"v.","zh":"忽视，不理会"},{"en":"illustrate","pos":"v.","zh":"说明；图解"},{"en":"imitate","pos":"v.","zh":"模仿，仿效"},{"en":"immediate","pos":"adj.","zh":"立即的；直接的"},{"en":"impact","pos":"n./v.","zh":"影响；冲击"},{"en":"implement","pos":"v./n.","zh":"实施；工具"},{"en":"implication","pos":"n.","zh":"暗示；影响；牵连"},{"en":"imply","pos":"v.","zh":"暗示，意味着"},{"en":"impose","pos":"v.","zh":"强加；征收"},{"en":"impressive","pos":"adj.","zh":"令人印象深刻的"},{"en":"inadequate","pos":"adj.","zh":"不充分的，不足的"},{"en":"incentive","pos":"n.","zh":"激励，动机"},{"en":"incident","pos":"n.","zh":"事件，事变"},{"en":"incline","pos":"v.","zh":"倾向；倾斜"},{"en":"incorporate","pos":"v.","zh":"合并；包含"},{"en":"indicate","pos":"v.","zh":"表明；指出"},{"en":"indispensable","pos":"adj.","zh":"不可或缺的"},{"en":"individual","pos":"n./adj.","zh":"个人；个别的"},{"en":"inevitable","pos":"adj.","zh":"不可避免的"},{"en":"infer","pos":"v.","zh":"推断，推论"},{"en":"inferior","pos":"adj.","zh":"次的；下级的"},{"en":"influence","pos":"n./v.","zh":"影响"},{"en":"inform","pos":"v.","zh":"通知，告知"},{"en":"inherent","pos":"adj.","zh":"固有的，内在的"},{"en":"initial","pos":"adj./n.","zh":"最初的；首字母"},{"en":"initiative","pos":"n.","zh":"主动性；倡议"},{"en":"innovation","pos":"n.","zh":"创新，革新"},{"en":"inquire","pos":"v.","zh":"询问，打听"},{"en":"insight","pos":"n.","zh":"洞察力，见解"},{"en":"inspire","pos":"v.","zh":"激励，鼓舞"},{"en":"install","pos":"v.","zh":"安装；任命"},{"en":"instinct","pos":"n.","zh":"本能，直觉"},{"en":"institute","pos":"n./v.","zh":"学院；机构；设立"},{"en":"instruct","pos":"v.","zh":"指示；指导"},{"en":"integrate","pos":"v.","zh":"使结合，整合"},{"en":"intellectual","pos":"adj./n.","zh":"智力的；知识分子"},{"en":"intense","pos":"adj.","zh":"强烈的；紧张的"},{"en":"interact","pos":"v.","zh":"互动，相互作用"},{"en":"interfere","pos":"v.","zh":"干涉；妨碍"},{"en":"interpret","pos":"v.","zh":"解释；口译"},{"en":"intervene","pos":"v.","zh":"干预，介入"},{"en":"intimate","pos":"adj.","zh":"亲密的；私人的"},{"en":"intrinsic","pos":"adj.","zh":"内在的，固有的"},{"en":"invest","pos":"v.","zh":"投资；投入"},{"en":"investigate","pos":"v.","zh":"调查，研究"},{"en":"involve","pos":"v.","zh":"涉及；使参与"},{"en":"isolate","pos":"v.","zh":"隔离，孤立"},{"en":"justify","pos":"v.","zh":"证明…正当；为…辩护"},{"en":"latter","pos":"adj./n.","zh":"后者的；后者"},{"en":"legislation","pos":"n.","zh":"立法；法律"},{"en":"legitimate","pos":"adj.","zh":"合法的；合理的"},{"en":"leisure","pos":"n.","zh":"闲暇，空闲"},{"en":"liberal","pos":"adj.","zh":"自由的；开明的"},{"en":"likewise","pos":"adv.","zh":"同样地；也"},{"en":"literally","pos":"adv.","zh":"字面上；确实地"},{"en":"magnificent","pos":"adj.","zh":"壮丽的，宏伟的"},{"en":"maintain","pos":"v.","zh":"维持；保养；坚持认为"},{"en":"manipulate","pos":"v.","zh":"操纵；巧妙处理"},{"en":"margin","pos":"n.","zh":"页边；差额；边缘"},{"en":"mature","pos":"adj./v.","zh":"成熟的；成熟"},{"en":"maximize","pos":"v.","zh":"使最大化"},{"en":"mechanism","pos":"n.","zh":"机制；机械装置"},{"en":"mediate","pos":"v.","zh":"调解，斡旋"},{"en":"medium","pos":"n./adj.","zh":"媒介；中等的"},{"en":"mental","pos":"adj.","zh":"精神的，心理的"},{"en":"mere","pos":"adj.","zh":"仅仅的，纯粹的"},{"en":"minimize","pos":"v.","zh":"使最小化"},{"en":"minimal","pos":"adj.","zh":"最小的，极少的"},{"en":"misery","pos":"n.","zh":"痛苦，悲惨"},{"en":"moderate","pos":"adj./v.","zh":"适度的；缓和"},{"en":"modify","pos":"v.","zh":"修改，调整"},{"en":"monitor","pos":"v./n.","zh":"监控；显示器"},{"en":"moreover","pos":"adv.","zh":"此外，而且"},{"en":"motivate","pos":"v.","zh":"激励，激发"},{"en":"mutual","pos":"adj.","zh":"相互的；共同的"},{"en":"narrative","pos":"n.","zh":"叙述，记叙文"},{"en":"negative","pos":"adj.","zh":"消极的；否定的；负的"},{"en":"neglect","pos":"v./n.","zh":"忽视，疏忽"},{"en":"negotiate","pos":"v.","zh":"谈判，协商"},{"en":"nevertheless","pos":"adv.","zh":"然而，不过"},{"en":"notion","pos":"n.","zh":"概念，观念"},{"en":"notorious","pos":"adj.","zh":"臭名昭著的"},{"en":"nourish","pos":"v.","zh":"滋养；培育"},{"en":"objective","pos":"n./adj.","zh":"目标；客观的"},{"en":"obligation","pos":"n.","zh":"义务，责任"},{"en":"observe","pos":"v.","zh":"观察；遵守"},{"en":"obstacle","pos":"n.","zh":"障碍，妨碍"},{"en":"obtain","pos":"v.","zh":"获得，得到"},{"en":"obvious","pos":"adj.","zh":"明显的，显而易见的"},{"en":"occasion","pos":"n.","zh":"场合；时机"},{"en":"occupy","pos":"v.","zh":"占据；占领；使忙碌"},{"en":"occur","pos":"v.","zh":"发生；出现；想起"},{"en":"offend","pos":"v.","zh":"冒犯；得罪"},{"en":"operate","pos":"v.","zh":"操作；运转；做手术"},{"en":"opponent","pos":"n.","zh":"对手，反对者"},{"en":"optimistic","pos":"adj.","zh":"乐观的"},{"en":"option","pos":"n.","zh":"选择，选项"},{"en":"organize","pos":"v.","zh":"组织，安排"},{"en":"origin","pos":"n.","zh":"起源，由来"},{"en":"outcome","pos":"n.","zh":"结果，结局"},{"en":"outstanding","pos":"adj.","zh":"杰出的；未付的"},{"en":"overcome","pos":"v.","zh":"克服，战胜"},{"en":"overlook","pos":"v.","zh":"忽视；俯瞰"},{"en":"overwhelm","pos":"v.","zh":"压倒；使不知所措"},{"en":"participate","pos":"v.","zh":"参加，参与"},{"en":"passive","pos":"adj.","zh":"被动的；消极的"},{"en":"perceive","pos":"v.","zh":"感知；理解"},{"en":"permanent","pos":"adj.","zh":"永久的，持久的"},{"en":"persist","pos":"v.","zh":"坚持；持续"},{"en":"perspective","pos":"n.","zh":"观点；视角"},{"en":"persuade","pos":"v.","zh":"说服，劝说"},{"en":"phenomenon","pos":"n.","zh":"现象"},{"en":"philosophy","pos":"n.","zh":"哲学；人生观"},{"en":"portray","pos":"v.","zh":"描绘，刻画"},{"en":"positive","pos":"adj.","zh":"积极的；肯定的；正的"},{"en":"possess","pos":"v.","zh":"拥有，具有"},{"en":"potential","pos":"adj./n.","zh":"潜在的；潜力"},{"en":"precise","pos":"adj.","zh":"精确的，准确的"},{"en":"predict","pos":"v.","zh":"预测，预言"},{"en":"prejudice","pos":"n.","zh":"偏见，成见"},{"en":"preliminary","pos":"adj.","zh":"初步的，预备的"},{"en":"premise","pos":"n.","zh":"前提；房屋"},{"en":"preserve","pos":"v.","zh":"保护；保存"},{"en":"prestige","pos":"n.","zh":"威望，声望"},{"en":"presume","pos":"v.","zh":"推测；假定"},{"en":"prevail","pos":"v.","zh":"盛行；占优势"},{"en":"prevent","pos":"v.","zh":"预防，阻止"},{"en":"previous","pos":"adj.","zh":"先前的，以前的"},{"en":"primarily","pos":"adv.","zh":"主要地，首要地"},{"en":"principle","pos":"n.","zh":"原则；原理"},{"en":"priority","pos":"n.","zh":"优先；优先事项"},{"en":"procedure","pos":"n.","zh":"程序，步骤"},{"en":"proceed","pos":"v.","zh":"继续进行；着手"},{"en":"profound","pos":"adj.","zh":"深刻的；深远的"},{"en":"prohibit","pos":"v.","zh":"禁止，阻止"},{"en":"prominent","pos":"adj.","zh":"突出的；著名的"},{"en":"promote","pos":"v.","zh":"促进；提升；推销"},{"en":"prompt","pos":"v./adj.","zh":"促使；迅速的"},{"en":"proportion","pos":"n.","zh":"比例；部分"},{"en":"propose","pos":"v.","zh":"提议；求婚"},{"en":"prospect","pos":"n.","zh":"前景；可能性"},{"en":"prosperity","pos":"n.","zh":"繁荣，兴旺"},{"en":"protect","pos":"v.","zh":"保护，防护"},{"en":"provoke","pos":"v.","zh":"激怒；引起"},{"en":"pursue","pos":"v.","zh":"追求；从事"},{"en":"qualify","pos":"v.","zh":"使合格；限定"},{"en":"quote","pos":"v./n.","zh":"引用，报价"},{"en":"radical","pos":"adj./n.","zh":"激进的；激进分子"},{"en":"random","pos":"adj.","zh":"随机的，任意的"},{"en":"rational","pos":"adj.","zh":"理性的，合理的"},{"en":"react","pos":"v.","zh":"反应，回应"},{"en":"realm","pos":"n.","zh":"领域；王国"},{"en":"reasonable","pos":"adj.","zh":"合理的；通情达理的"},{"en":"rebel","pos":"v./n.","zh":"反抗；叛乱者"},{"en":"recall","pos":"v./n.","zh":"回忆；召回"},{"en":"recognize","pos":"v.","zh":"认出；承认"},{"en":"recommend","pos":"v.","zh":"推荐，建议"},{"en":"recover","pos":"v.","zh":"恢复；找回"},{"en":"reduce","pos":"v.","zh":"减少，降低"},{"en":"refine","pos":"v.","zh":"提炼；改进"},{"en":"reflect","pos":"v.","zh":"反映；反射；思考"},{"en":"reform","pos":"v./n.","zh":"改革，改良"},{"en":"refute","pos":"v.","zh":"驳斥，反驳"},{"en":"regardless","pos":"adv.","zh":"不顾，不管"},{"en":"register","pos":"v./n.","zh":"登记；注册"},{"en":"regulate","pos":"v.","zh":"调节；管理"},{"en":"reinforce","pos":"v.","zh":"加强，强化"},{"en":"reject","pos":"v.","zh":"拒绝；排斥"},{"en":"relevant","pos":"adj.","zh":"相关的，切题的"},{"en":"reliable","pos":"adj.","zh":"可靠的，可信赖的"},{"en":"reluctant","pos":"adj.","zh":"不情愿的，勉强的"},{"en":"remarkable","pos":"adj.","zh":"非凡的，显著的"},{"en":"render","pos":"v.","zh":"使成为；提供；表达"},{"en":"represent","pos":"v.","zh":"代表；表现"},{"en":"reputation","pos":"n.","zh":"名声，声誉"},{"en":"require","pos":"v.","zh":"需要；要求"},{"en":"resemble","pos":"v.","zh":"像，类似于"},{"en":"reserve","pos":"v./n.","zh":"保留；储备"},{"en":"resist","pos":"v.","zh":"抵抗；忍住"},{"en":"resolve","pos":"v./n.","zh":"解决；决心"},{"en":"resort","pos":"v./n.","zh":"求助；度假胜地"},{"en":"resource","pos":"n.","zh":"资源，财力"},{"en":"respond","pos":"v.","zh":"回应，回答"},{"en":"restore","pos":"v.","zh":"恢复；修复"},{"en":"restrain","pos":"v.","zh":"抑制，约束"},{"en":"restrict","pos":"v.","zh":"限制，约束"},{"en":"retain","pos":"v.","zh":"保留，保持"},{"en":"retreat","pos":"v./n.","zh":"撤退；退却"},{"en":"reveal","pos":"v.","zh":"揭示，透露"},{"en":"revenue","pos":"n.","zh":"收入；税收"},{"en":"reverse","pos":"v./adj.","zh":"颠倒；相反的"},{"en":"revise","pos":"v.","zh":"修订；复习"},{"en":"revolution","pos":"n.","zh":"革命；变革"},{"en":"reward","pos":"n./v.","zh":"奖励，回报"},{"en":"rigid","pos":"adj.","zh":"僵硬的；严格的"},{"en":"robust","pos":"adj.","zh":"强健的；强劲的"},{"en":"scarce","pos":"adj.","zh":"稀缺的，不足的"},{"en":"scenario","pos":"n.","zh":"情景；设想"},{"en":"scope","pos":"n.","zh":"范围；机会"},{"en":"scrutiny","pos":"n.","zh":"仔细检查"},{"en":"secure","pos":"adj./v.","zh":"安全的；保护；获得"},{"en":"seek","pos":"v.","zh":"寻找；追求"},{"en":"seize","pos":"v.","zh":"抓住；夺取"},{"en":"sensible","pos":"adj.","zh":"明智的，理智的"},{"en":"sensitive","pos":"adj.","zh":"敏感的；体贴的"},{"en":"significant","pos":"adj.","zh":"重大的；显著的"},{"en":"similar","pos":"adj.","zh":"相似的，类似的"},{"en":"simultaneous","pos":"adj.","zh":"同时发生的"},{"en":"sophisticated","pos":"adj.","zh":"复杂的；老练的"},{"en":"specific","pos":"adj.","zh":"具体的；特定的"},{"en":"speculate","pos":"v.","zh":"推测；投机"},{"en":"spontaneous","pos":"adj.","zh":"自发的，自然的"},{"en":"stable","pos":"adj.","zh":"稳定的，稳固的"},{"en":"status","pos":"n.","zh":"地位；状态"},{"en":"stimulate","pos":"v.","zh":"刺激；激励"},{"en":"strategy","pos":"n.","zh":"战略，策略"},{"en":"strengthen","pos":"v.","zh":"加强，巩固"},{"en":"strict","pos":"adj.","zh":"严格的，严厉的"},{"en":"structure","pos":"n./v.","zh":"结构；构建"},{"en":"struggle","pos":"v./n.","zh":"奋斗；挣扎"},{"en":"submit","pos":"v.","zh":"提交；屈服"},{"en":"subsequent","pos":"adj.","zh":"随后的，后来的"},{"en":"substantial","pos":"adj.","zh":"大量的；实质的"},{"en":"substitute","pos":"n./v.","zh":"代替品；代替"},{"en":"subtle","pos":"adj.","zh":"微妙的；细微的"},{"en":"sufficient","pos":"adj.","zh":"充足的，足够的"},{"en":"summarize","pos":"v.","zh":"总结，概括"},{"en":"superior","pos":"adj./n.","zh":"优越的；上级"},{"en":"supplement","pos":"n./v.","zh":"补充，增补"},{"en":"suppress","pos":"v.","zh":"镇压；抑制"},{"en":"surpass","pos":"v.","zh":"超越，胜过"},{"en":"survive","pos":"v.","zh":"幸存；比…活得长"},{"en":"suspect","pos":"v./n.","zh":"怀疑；嫌疑人"},{"en":"suspend","pos":"v.","zh":"暂停；悬挂"},{"en":"sustain","pos":"v.","zh":"维持；支撑；遭受"},{"en":"sustainable","pos":"adj.","zh":"可持续的"},{"en":"symbol","pos":"n.","zh":"象征，符号"},{"en":"sympathy","pos":"n.","zh":"同情，共鸣"},{"en":"tackle","pos":"v.","zh":"处理，解决；阻截"},{"en":"tedious","pos":"adj.","zh":"乏味的，单调的"},{"en":"temporary","pos":"adj.","zh":"暂时的，临时的"},{"en":"tendency","pos":"n.","zh":"倾向，趋势"},{"en":"tense","pos":"adj./n.","zh":"紧张的；时态"},{"en":"terminate","pos":"v.","zh":"终止，结束"},{"en":"theme","pos":"n.","zh":"主题，题目"},{"en":"theoretical","pos":"adj.","zh":"理论的，理论上的"},{"en":"thorough","pos":"adj.","zh":"彻底的，详尽的"},{"en":"thrive","pos":"v.","zh":"茁壮成长；兴旺"},{"en":"tolerate","pos":"v.","zh":"容忍，忍受"},{"en":"transfer","pos":"v./n.","zh":"转移；调动"},{"en":"transform","pos":"v.","zh":"转变，改变"},{"en":"transition","pos":"n.","zh":"过渡，转变"},{"en":"transmit","pos":"v.","zh":"传送；传播"},{"en":"transparent","pos":"adj.","zh":"透明的；明显的"},{"en":"tremendous","pos":"adj.","zh":"巨大的；极好的"},{"en":"trigger","pos":"v./n.","zh":"引发；扳机"},{"en":"ultimate","pos":"adj.","zh":"最终的，根本的"},{"en":"undergo","pos":"v.","zh":"经历，遭受"},{"en":"undermine","pos":"v.","zh":"破坏；逐渐削弱"},{"en":"undertake","pos":"v.","zh":"承担；着手"},{"en":"unify","pos":"v.","zh":"统一，使一致"},{"en":"unique","pos":"adj.","zh":"独特的，唯一的"},{"en":"universal","pos":"adj.","zh":"普遍的；通用的"},{"en":"urban","pos":"adj.","zh":"城市的，都市的"},{"en":"urge","pos":"v./n.","zh":"催促；强烈愿望"},{"en":"utilize","pos":"v.","zh":"利用，使用"},{"en":"vague","pos":"adj.","zh":"模糊的，含糊的"},{"en":"valid","pos":"adj.","zh":"有效的；有根据的"},{"en":"vanish","pos":"v.","zh":"消失，突然不见"},{"en":"variable","pos":"adj./n.","zh":"可变的；变量"},{"en":"various","pos":"adj.","zh":"各种各样的"},{"en":"vary","pos":"v.","zh":"变化；不同"},{"en":"venture","pos":"n./v.","zh":"冒险；企业；敢于"},{"en":"verify","pos":"v.","zh":"核实，证明"},{"en":"vibrant","pos":"adj.","zh":"充满活力的；鲜明的"},{"en":"vigorous","pos":"adj.","zh":"精力充沛的；有力的"},{"en":"violate","pos":"v.","zh":"违反；侵犯"},{"en":"virtual","pos":"adj.","zh":"虚拟的；实际上的"},{"en":"virtue","pos":"n.","zh":"美德；优点"},{"en":"visible","pos":"adj.","zh":"可见的，明显的"},{"en":"vital","pos":"adj.","zh":"至关重要的；生命的"},{"en":"vivid","pos":"adj.","zh":"生动的；鲜明的"},{"en":"voluntary","pos":"adj.","zh":"自愿的，志愿的"},{"en":"vulnerable","pos":"adj.","zh":"脆弱的；易受伤的"},{"en":"welfare","pos":"n.","zh":"福利；幸福"},{"en":"widespread","pos":"adj.","zh":"普遍的，广泛的"},{"en":"withdraw","pos":"v.","zh":"撤回；提款；退出"},{"en":"witness","pos":"n./v.","zh":"目击者；目睹"},{"en":"yield","pos":"v./n.","zh":"产生；屈服；产量"},{"en":"abolish","pos":"v.","zh":"废除，废止"},{"en":"abstract","pos":"adj./n.","zh":"抽象的；摘要"},{"en":"accommodate","pos":"v.","zh":"容纳；适应；提供住宿"},{"en":"accompany","pos":"v.","zh":"陪伴；伴随"},{"en":"acknowledge","pos":"v.","zh":"承认；致谢"},{"en":"aesthetic","pos":"adj.","zh":"美学的，审美的"},{"en":"allocate","pos":"v.","zh":"分配，分派"},{"en":"analogy","pos":"n.","zh":"类比，类推"},{"en":"apparatus","pos":"n.","zh":"仪器，装置"},{"en":"arouse","pos":"v.","zh":"唤起，激起"},{"en":"assert","pos":"v.","zh":"断言，主张"},{"en":"assumption","pos":"n.","zh":"假设；承担"},{"en":"autonomy","pos":"n.","zh":"自治；自主权"},{"en":"coherent","pos":"adj.","zh":"连贯的；一致的"},{"en":"collaborate","pos":"v.","zh":"合作，协作"},{"en":"commence","pos":"v.","zh":"开始，着手"},{"en":"comprehensive","pos":"adj.","zh":"全面的，综合的"},{"en":"comprise","pos":"v.","zh":"包含，由…组成"},{"en":"conceive","pos":"v.","zh":"构想；怀孕"},{"en":"conscious","pos":"adj.","zh":"有意识的；意识到的"},{"en":"consensus","pos":"n.","zh":"共识，一致"},{"en":"consequently","pos":"adv.","zh":"因此，结果"},{"en":"controversy","pos":"n.","zh":"争论，争议"},{"en":"correlate","pos":"v.","zh":"相互关联"},{"en":"counterpart","pos":"n.","zh":"对应的人或物"},{"en":"credible","pos":"adj.","zh":"可信的，可靠的"},{"en":"deduce","pos":"v.","zh":"推断，演绎"},{"en":"deteriorate","pos":"v.","zh":"恶化，变坏"},{"en":"devise","pos":"v.","zh":"设计，发明"},{"en":"diagnose","pos":"v.","zh":"诊断"},{"en":"dilemma","pos":"n.","zh":"困境，两难"},{"en":"discrete","pos":"adj.","zh":"离散的，分立的"},{"en":"dispose","pos":"v.","zh":"处理；布置"},{"en":"distinctive","pos":"adj.","zh":"与众不同的，独特的"},{"en":"elicit","pos":"v.","zh":"引出，诱出"},{"en":"eloquent","pos":"adj.","zh":"雄辩的，有口才的"},{"en":"empower","pos":"v.","zh":"授权；使有能力"},{"en":"endorse","pos":"v.","zh":"支持；背书"},{"en":"entail","pos":"v.","zh":"需要；使必要"},{"en":"epidemic","pos":"n./adj.","zh":"流行病；流行的"},{"en":"fluctuation","pos":"n.","zh":"波动，起伏"}];
+/* HANDBOOK 字段: en,pos,zh  → 统一补 ipa:'' unit:'手册' */
+HANDBOOK.forEach(w=>{w.ipa=w.ipa||"";w.unit=w.unit||"手册";});
+
+const WRONG_KEY = "vocabDrill.wrong.v1";
+
+/* ===== 错题本存取 ===== */
+function loadWrong(){
+  try{return JSON.parse(localStorage.getItem(WRONG_KEY)||"{}");}catch(e){return{};}
+}
+function saveWrong(o){ try{localStorage.setItem(WRONG_KEY,JSON.stringify(o));}catch(e){} }
+function wrongList(){
+  const o=loadWrong();
+  return Object.values(o).sort((a,b)=>b.t-a.t);
+}
+function addWrong(w){
+  const o=loadWrong(); const id=w.deck+"::"+w.en;
+  o[id]={en:w.en,ipa:w.ipa,pos:w.pos,zh:w.zh,unit:w.unit,deck:w.deck,t:Date.now(),
+         miss:(o[id]?o[id].miss:0)+1};
+  saveWrong(o);
+}
+function removeWrong(w){
+  const o=loadWrong(); delete o[w.deck+"::"+w.en]; saveWrong(o);
+}
+
+/* ===== 牌库定义 ===== */
+function buildDecks(){
+  return [
+    {id:"course", name:"课内", sub:COURSE.length+" 词", words:COURSE.map(w=>({...w,deck:"course"}))},
+    {id:"handbook", name:"复习手册", sub:HANDBOOK.length+" 词", words:HANDBOOK.map(w=>({...w,deck:"handbook"}))},
+    {id:"wrong", name:"错题本", sub:"0 词", wrong:true, words:[]},
+  ];
+}
+let DECKS = buildDecks();
+
+/* ===== 状态 ===== */
+let curDeck="course", queue=[], idx=0, answered=false, right=0, total=0;
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function refreshWrongDeck(){
+  const wl=wrongList().map(w=>({...w}));
+  const d=DECKS.find(d=>d.id==="wrong");
+  d.words=wl; d.sub=wl.length+" 词";
+}
+
+function startDeck(id){
+  curDeck=id;
+  if(id==="wrong") refreshWrongDeck();
+  const deck=DECKS.find(d=>d.id===id);
+  queue=shuffle(deck.words);
+  idx=0;answered=false;right=0;total=0;
+  renderDecks();
+  document.getElementById("deckName").textContent=deck.name;
+  render();
+}
+
+/* ===== 渲染牌库选择 ===== */
+function renderDecks(){
+  refreshWrongDeck();
+  const box=document.getElementById("decks");
+  box.innerHTML="";
+  DECKS.forEach(d=>{
+    const el=document.createElement("button");
+    el.className="deck"+(d.id===curDeck?" on":"")+(d.wrong?" wrong":"");
+    el.innerHTML=`<span class="t">${d.wrong?'<span class="dot"></span>':''}${d.name}</span><span class="n">${d.sub}</span>`;
+    el.onclick=()=>startDeck(d.id);
+    box.appendChild(el);
+  });
+}
+
+/* ===== 生成选项：正确释义 + 3 个同库干扰 ===== */
+function makeOptions(word){
+  const pool = (DECKS.find(d=>d.id===word.deck)||{}).words || COURSE.concat(HANDBOOK);
+  const distract = shuffle(pool.filter(w=>w.zh!==word.zh)).slice(0,3).map(w=>w.zh);
+  return shuffle([word.zh,...distract]);
+}
+
+/* ===== 渲染当前卡片 ===== */
+function render(){
+  const main=document.getElementById("main");
+  const barFill=document.getElementById("barFill");
+  const counter=document.getElementById("counter");
+  const scoreStat=document.getElementById("scoreStat");
+  scoreStat.innerHTML = total? `本轮 <b>${right}</b>/${total} 正确` : "";
+
+  if(queue.length===0){
+    counter.textContent="0 / 0"; barFill.style.width="0%";
+    const empty = curDeck==="wrong"
+      ? `<div class="done"><div class="big">错题本是空的 🎉</div><div class="sub">刷题时答错的词会自动收进这里。先去课内或复习手册练几轮吧。</div></div>`
+      : `<div class="done"><div class="big">这个词库没有内容</div></div>`;
+    main.innerHTML=empty;
+    document.getElementById("nextBtn").style.visibility="hidden";
+    return;
+  }
+  if(idx>=queue.length){
+    counter.textContent=`${queue.length} / ${queue.length}`; barFill.style.width="100%";
+    const acc = total? Math.round(right/total*100):0;
+    main.innerHTML=`<div class="done">
+      <div class="big">这一轮过完啦</div>
+      <div class="sub">正确率 ${acc}% · 共 ${total} 题${curDeck==="wrong"?'<br>答对的词已移出错题本':''}</div>
+      <button class="btn primary" style="margin:0 auto" onclick="startDeck(curDeck)">再来一轮</button>
+    </div>`;
+    document.getElementById("nextBtn").style.visibility="hidden";
+    return;
+  }
+
+  document.getElementById("nextBtn").style.visibility="visible";
+  const w=queue[idx];
+  answered=false;
+  counter.textContent=`${idx+1} / ${queue.length}`;
+  barFill.style.width=(idx/queue.length*100)+"%";
+
+  const opts=makeOptions(w);
+  const keys=["A","B","C","D"];
+  main.innerHTML=`
+    <div class="card">
+      <div class="pos-line">
+        ${w.pos?`<span class="pos">${w.pos}</span>`:""}
+        ${w.ipa?`<span class="ipa">${w.ipa}</span>`:""}
+        <span class="ipa" style="margin-left:auto">${w.unit||""}${w.miss?` · 错过${w.miss}次`:""}</span>
+      </div>
+      <div class="word">${w.en}</div>
+      <div class="hint">选出正确的中文释义</div>
+    </div>
+    <div class="opts" id="opts">
+      ${opts.map((o,i)=>`<button class="opt" data-zh="${encodeURIComponent(o)}">
+        <span class="k">${keys[i]}</span><span>${o}</span></button>`).join("")}
+    </div>`;
+
+  document.querySelectorAll("#opts .opt").forEach(btn=>{
+    btn.onclick=()=>choose(btn,w);
+  });
+}
+
+/* ===== 作答 ===== */
+function choose(btn,w){
+  if(answered)return;answered=true;total++;
+  const picked=decodeURIComponent(btn.dataset.zh);
+  const correct = picked===w.zh;
+  document.querySelectorAll("#opts .opt").forEach(b=>{
+    b.disabled=true;
+    const zh=decodeURIComponent(b.dataset.zh);
+    if(zh===w.zh) b.classList.add("right");
+    else if(b===btn) b.classList.add("wrong");
+  });
+  if(correct){
+    right++;
+    if(curDeck==="wrong"){ removeWrong(w); toast("答对，移出错题本"); }
+  }else{
+    addWrong(w);
+    toast(curDeck==="wrong"?"再记一次":"已加入错题本");
+  }
+  renderDecks();
+  // 答对自动下一题（稍作停顿看反馈）
+  setTimeout(()=>{ if(answered && correct) next(); }, 650);
+}
+
+function next(){
+  if(idx<queue.length){ idx++; render(); }
+}
+
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),1100);
+}
+
+document.getElementById("nextBtn").onclick=()=>{
+  if(!answered && queue.length && idx<queue.length){ // 跳过=算作未掌握？这里仅跳过不计错
+    toast("已跳过");
+  }
+  next();
+};
+document.getElementById("restartBtn").onclick=()=>startDeck(curDeck);
+
+/* ===== 初始化 ===== */
+renderDecks();
+startDeck("course");
+</script>
